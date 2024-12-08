@@ -15,13 +15,14 @@ headers = {
 }
 
 
-#热门
-p = 10
+
+#热门歌曲
+p = 3
 k = 0
 name = [] 
 print("以下为热门")
 for i in range(1,p+1):
-    time.sleep(0.3)
+    time.sleep(0.2)
     res = requests.get("https://www.gequbao.com/hot-music/"+str(i) , headers=headers)
     soup = BeautifulSoup(res.text,"html.parser").select("td a[class='text-info font-weight-bold']")
     for l in soup:
@@ -32,29 +33,51 @@ for i in range(1,p+1):
 
 
 
-pg = 11
-end = 20
+pg = 35
+end = 50
 while(1):
 
 
-    song = name[pg]
-    if pg == end:
+
+    song = input("直接回车可退出\n歌名(手)或索引[]:")
+    if song.isdigit():
+        song = name[int(song)]
+    if not song:
         break
 
-    # song = input("直接回车可退出\n歌名或索引[]:")
-    # if song.isdigit():
-    #     song = name[int(song)]
-    # if not song:
-    #     break
 
-    time.sleep(0.2)
+    time.sleep(0.3)
     res = requests.get("https://www.gequbao.com/s/"+song,headers=headers)
-    soup = BeautifulSoup(res.text,"html.parser").select("div[class='col-8 col-content'] a[class='music-link d-block']")
+    sp = BeautifulSoup(res.text,"html.parser")
+
+
+    soup = sp.select("div[class='col-8 col-content'] a[class='music-link d-block']")
+    singername = sp.select("small[class='text-jade font-weight-bolder align-middle']")
+
 
     ty1 = r'href\s*=\s*"([^"]*)"'
-    href = "https://www.gequbao.com" + re.search(ty1,str(soup)).group(1)
+    ty2 = r"<span>\s*([^>]*)\s*</span>"
+    href = []
+    o = 0
+    for i in re.findall(ty1,str(soup)):
 
-    print(href)
+        #打印同名不同歌曲及作者
+        print(f"[{o}]"+">"*6 +f"({singername[o].get_text(strip=True)})" + re.findall(ty2,str(soup))[o])
+
+        hrefcache = "https://www.gequbao.com" + i
+        href.append(hrefcache)
+        #打印外层链接
+        print(href[o],end="\n\n")
+        o+=1 
+
+
+
+    num = input("以上为所有搜索结果\n"+"选择编号(默认为编号0)[]:")
+    if not num:
+        num = 0
+    #这里防止song在一开始输入的是人名，导致文件以人名来命名
+    song = re.findall(ty2,str(soup))[int(num)]
+    href = href[int(num)]
 
 
     #开始音频链接
@@ -62,23 +85,25 @@ while(1):
     soup = BeautifulSoup(res.text,"html.parser").select("script[type='text/javascript']")
     ty = r"window\.play_id\s*=\s*'([^']*)'"
     id = re.search(ty,str(soup[0])).group(1)
-
     print(f"解码post的id为{id}")
+
 
 
     datas = {
         "id": id
     }
-    time.sleep(0.2)
+    time.sleep(0.3)
     res1 = requests.post("https://www.gequbao.com/api/play-url",headers=headers,data=datas).json()["data"]["url"]
     print(f"《{song}》的链接为:\n {res1}")
 
 
     #判断可否下载
-    time.sleep(0.3)
+    time.sleep(0.2)
     headre = requests.head(res1, allow_redirects=True)
     content_length = headre.headers.get('Content-Length')
     print(f"{int(content_length)}字节")
+
+    pg+=1
     if int(content_length) < 500000:
         print("字节过小，可能不是目的歌曲")
         continue
@@ -91,8 +116,6 @@ while(1):
     with open(mp3_path, 'wb') as f:
         f.write(response.content)
         print("成功下载")
-
-    pg+=1
 
 
 
