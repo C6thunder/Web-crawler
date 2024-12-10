@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from time import sleep
 import requests
+import random
 import time
 import os
 
@@ -24,22 +25,38 @@ wd =webdriver.Chrome(options=option)
 def scroll_to_bottom(driver):
 
     # JavaScript代码来滚动到页面底部
-
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
 
+
 #输入图片主题 之后下载的图片与之相关
-iron = input("主题\n")
+iron = input("主题(默认二次元):\n")
+if not iron:
+    iron = "二次元"
+
+#输入你想要的图片数目
+page = input("爬多少张(默认20):\n")
+
+if not page:
+    page = "20"
+page = int(page)
 
 
-wd.get('https://image.baidu.com/search/index?tn=baiduimage&ct=201326592&lm=-1&cl=2&ie=utf8&word='+ iron +'&fr=ala&ala=1&alatpl=normal&pos=0&dyTabStr=MCwzLDEsMiwxMyw3LDYsNSwxMiw5')
+#随机数  若不想随机可设为0
+deep = random.randint(0, 250)
+# deep = 0
+
+
+wd.get('https://image.baidu.com/search/index?tn=baiduimage&ct=201326592&lm=-1&cl=2&ie=utf8&word='+ iron +'图库&fr=ala&ala=1&alatpl=normal&pos=0&dyTabStr=MCwzLDEsMiwxMyw3LDYsNSwxMiw5')
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
 }
 
 
+
+
 #网页滚动用来刷新图片
-q=4
+q = (page+deep) // 20
 while(q):
     scroll_to_bottom(wd)
     sleep(1)
@@ -54,28 +71,38 @@ elements = WebDriverWait(wd, 20).until(
 )
 
 
- 
+
+
 i = 0
+ca_i = 0
 if not os.path.exists('./seleniuma爬虫图'):  #如果没有erciyuan则创建一个
     os.mkdir('./seleniuma爬虫图') 
+
 for element in elements:
     t = element.get_attribute('src')
-    if t.startswith("http"):
+
+    if t.startswith("http") and "img" in t:
+        if deep > ca_i:
+            ca_i += 1
+            continue
+
         i += 1
         path = "./seleniuma爬虫图/"+ iron +f"{i}.jpg"
 
         r = requests.get(t,headers=headers)
         r.raise_for_status()
 
+
         time.sleep(0.3)
         with open(path, 'wb') as f:
             f.write(r.content)
-            f.close()
 
-            print("**==================**")
-            print(t)
-            print(f'保存成功第{i}张图片')
-            print("**^^^^^^^^^^^^^^^^^^**")
- 
+        print("**==================**")
+        print(t)
+        print(f'保存成功第{i}张图片')
+        print("**^^^^^^^^^^^^^^^^^^**")
+        if i == page:
+            break
+
 wd.quit()
 
