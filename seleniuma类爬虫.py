@@ -4,10 +4,11 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 from time import sleep
 import requests
-import os
 import time
+import os
 
 # wd = webdriver.Chrome()
+
 
 #浏览器启动选项
 option=webdriver.ChromeOptions()
@@ -19,7 +20,6 @@ wd =webdriver.Chrome(options=option)
 
 
 
-
 # 定义一个函数来模拟滚轮滚动
 def scroll_to_bottom(driver):
 
@@ -28,9 +28,11 @@ def scroll_to_bottom(driver):
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
 
+#输入图片主题 之后下载的图片与之相关
+iron = input("主题\n")
 
-wd.get('https://image.baidu.com/search/index?tn=baiduimage&ct=201326592&lm=-1&cl=2&ie=utf8&word=%E4%BA%8C%E6%AC%A1%E5%85%83%E5%9B%BE%E5%BA%93&fr=ala&ala=1&alatpl=normal&pos=0&dyTabStr=MCwzLDEsMiwxMyw3LDYsNSwxMiw5')
 
+wd.get('https://image.baidu.com/search/index?tn=baiduimage&ct=201326592&lm=-1&cl=2&ie=utf8&word='+ iron +'&fr=ala&ala=1&alatpl=normal&pos=0&dyTabStr=MCwzLDEsMiwxMyw3LDYsNSwxMiw5')
 headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36'
 }
@@ -42,7 +44,6 @@ while(q):
     scroll_to_bottom(wd)
     sleep(1)
     q-=1
-
 
 
 
@@ -61,7 +62,7 @@ for element in elements:
     t = element.get_attribute('src')
     if t.startswith("http"):
         i += 1
-        path = f"./seleniuma爬虫图/二次元{i}.jpg"
+        path = "./seleniuma爬虫图/"+ iron +f"{i}.jpg"
 
         r = requests.get(t,headers=headers)
         r.raise_for_status()
@@ -77,3 +78,4 @@ for element in elements:
             print("**^^^^^^^^^^^^^^^^^^**")
  
 wd.quit()
+
