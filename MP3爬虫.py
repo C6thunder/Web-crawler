@@ -137,7 +137,6 @@ while(1):
     else:
         #下载歌曲
         response = requests.get(res1, stream=True)
-        # mp3_path = f"/home/thunder/音乐/{song}"+".mp3"
         mp3_path = f"./{song}"+".mp3"
         os.makedirs(os.path.dirname(mp3_path), exist_ok=True)
         with open(mp3_path, 'wb') as f:
