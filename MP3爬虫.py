@@ -1,8 +1,25 @@
+#新导入一个库
+from selenium import webdriver
+
 from bs4 import BeautifulSoup
 import requests
 import time
 import re
 import os
+
+
+
+
+# driver = webdriver.Chrome()
+
+
+#浏览器启动选项
+option=webdriver.ChromeOptions()
+#指定为无界面模式
+option.add_argument('--headless')
+#创建Chrome驱动程序的实例
+driver = webdriver.Chrome(options=option)
+
 
 headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -16,7 +33,8 @@ headers = {
 
 
 
-#热门歌曲
+
+# 热门歌曲
 p = 3
 k = 0
 name = [] 
@@ -39,7 +57,8 @@ while(1):
 
 
 
-    song = input("直接回车可退出\n歌名(手)或索引[]:")
+    song = input("\n直接回车可退出\n歌名(手)或索引[]:")
+
     if song.isdigit():
         song = name[int(song)]
     if not song:
@@ -58,40 +77,48 @@ while(1):
     ty1 = r'href\s*=\s*"([^"]*)"'
     ty2 = r"<span>\s*([^>]*)\s*</span>"
     href = []
+    find_ty1 = re.findall(ty1,str(soup))
+    find_ty2 = re.findall(ty2,str(soup))
     o = 0
-    for i in re.findall(ty1,str(soup)):
+    for i in find_ty1:
 
         #打印同名不同歌曲及作者
-        print(f"[{o}]"+">"*6 +f"({singername[o].get_text(strip=True)})" + re.findall(ty2,str(soup))[o])
+        print("\n"+f"[{o}]"+">"*6 +f"({singername[o].get_text(strip=True)})" + find_ty2[o])
 
         hrefcache = "https://www.gequbao.com" + i
         href.append(hrefcache)
+
         #打印外层链接
         print(href[o],end="\n\n")
         o+=1 
 
 
 
-    num = input("以上为所有搜索结果\n"+"选择编号(默认为编号0)[]:")
+    num = input("以上为所有搜索结果\n\n"+"选择编号(回车返回)[]:")
     if not num:
-        num = 0
-    #这里防止song在一开始输入的是人名，导致文件以人名来命名
-    song = re.findall(ty2,str(soup))[int(num)]
-    href = href[int(num)]
+        continue
 
+
+    #这里防止song在一开始输入的是人名，导致文件以人名来命名
+    song = find_ty2[int(num)]
+    href = href[int(num)]
+    
 
     #开始音频链接
-    res = requests.get(href,headers=headers)
-    soup = BeautifulSoup(res.text,"html.parser").select("script[type='text/javascript']")
-    ty = r"window\.play_id\s*=\s*'([^']*)'"
-    id = re.search(ty,str(soup[0])).group(1)
-    print(f"解码post的id为{id}")
+    driver.get(href)
+    res = driver.page_source
+    driver.quit()
 
+    ty = r"window\.play_id\s*=\s*'([^']*)'"
+    id = re.search(ty,res).group(1)  
+    print(f"解码post的id为{id}")
 
 
     datas = {
         "id": id
     }
+
+
     time.sleep(0.3)
     res1 = requests.post("https://www.gequbao.com/api/play-url",headers=headers,data=datas).json()["data"]["url"]
     print(f"《{song}》的链接为:\n {res1}")
@@ -105,20 +132,17 @@ while(1):
 
     pg+=1
     if int(content_length) < 500000:
-        print("字节过小，可能不是目的歌曲")
-        continue
+        print("！！字节过小，可能不是目的歌曲！！")
 
-
-    #下载歌曲
-    response = requests.get(res1, stream=True)
-    mp3_path = f"/home/thunder/音乐/{song}"+".mp3"
-    os.makedirs(os.path.dirname(mp3_path), exist_ok=True)
-    with open(mp3_path, 'wb') as f:
-        f.write(response.content)
-        print("成功下载")
-
-
-
-
+    else:
+        #下载歌曲
+        response = requests.get(res1, stream=True)
+        # mp3_path = f"/home/thunder/音乐/{song}"+".mp3"
+        mp3_path = f"./{song}"+".mp3"
+        os.makedirs(os.path.dirname(mp3_path), exist_ok=True)
+        with open(mp3_path, 'wb') as f:
+            f.write(response.content)
+            print("成功下载")
+            
 
 #总结：正则表达式真好用！！！
