@@ -1,24 +1,8 @@
-#新导入一个库
-from selenium import webdriver
-
 from bs4 import BeautifulSoup
 import requests
 import time
 import re
 import os
-
-
-
-
-# driver = webdriver.Chrome()
-
-
-#浏览器启动选项
-option=webdriver.ChromeOptions()
-#指定为无界面模式
-option.add_argument('--headless')
-#创建Chrome驱动程序的实例
-driver = webdriver.Chrome(options=option)
 
 
 headers = {
@@ -49,12 +33,9 @@ for i in range(1,p+1):
         k += 1
 
 
-
-
 pg = 35
 end = 50
 while(1):
-
 
 
     song = input("\n直接回车可退出\n歌名(手)或索引[]:")
@@ -94,7 +75,7 @@ while(1):
 
 
 
-    num = input("以上为所有搜索结果\n\n"+"选择编号(回车返回)[]:")
+    num = input("以上为所有搜索结果\n\n"+"选择编号(回车返回)[=>]:")
     if not num:
         continue
 
@@ -105,9 +86,10 @@ while(1):
     
 
     #开始音频链接
-    driver.get(href)
-    res = driver.page_source
-    driver.quit()
+    # driver.get(href)    # 有时候不能用，就用requests进行请求
+    response = requests.get(href,headers=headers)
+    res = response.text
+    # driver.quit()
 
     ty = r"window\.play_id\s*=\s*'([^']*)'"
     id = re.search(ty,res).group(1)  
@@ -144,4 +126,4 @@ while(1):
             print("成功下载")
             
 
-#总结：正则表达式真好用！！！
+
