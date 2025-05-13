@@ -91,7 +91,9 @@ while(1):
     res = response.text
     # driver.quit()
 
-    ty = r"window\.play_id\s*=\s*'([^']*)'"
+    # ty = r"play_id\s*:\s*'([^']*)'"   # window\.
+    ty = r'["\']play_id["\']\s*:\s*["\']([^"\']+)["\']'
+
     id = re.search(ty,res).group(1)  
     print(f"解码post的id为{id}")
 
